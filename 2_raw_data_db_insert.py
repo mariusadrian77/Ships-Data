@@ -3,18 +3,18 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
 
-def copy_from_csv(cursor, file_path):
+def copy_from_csv(cursor, file_path, table_name):
     with open(file_path, 'r') as f:
         next(f)  # Skip the header row
-        cursor.copy_expert("COPY raw_messages FROM STDIN WITH CSV HEADER", f)
+        cursor.copy_expert(f"COPY {table_name} FROM STDIN WITH CSV HEADER", f)
 
-def create_cursor_and_insert_data(connection, csv_file_path):
+def create_cursor_and_insert_data(connection, csv_file_path, table_name):
     cursor = connection.cursor()
 
     print("Connection established successfully!")
     
     # Use COPY command to bulk insert from CSV
-    copy_from_csv(cursor, csv_file_path)
+    copy_from_csv(cursor, csv_file_path, table_name)
 
     print("Data inserted successfully!")
 
@@ -30,10 +30,10 @@ def main():
     load_dotenv()
 
     # Fetch the database URL from the .env file
-    POSTGRESQL_URL = os.getenv("POSTGRESQL_KEY")
+    STAGING_URL = os.getenv("STAGING_KEY")
 
     # Parse the URL to extract connection parameters
-    url = urlparse(POSTGRESQL_URL)
+    url = urlparse(STAGING_URL)
 
     conn_params = {
         'dbname': url.path[1:],    # Extracts the database name after '/'
@@ -51,7 +51,7 @@ def main():
         csv_file_path = '/workspaces/Xomnia-Assignment/raw_messages.csv'
         
         # Create the tables and insert the data
-        create_cursor_and_insert_data(conn, csv_file_path)
+        create_cursor_and_insert_data(conn, csv_file_path, 'raw_messages')
     finally:
         conn.close()
 

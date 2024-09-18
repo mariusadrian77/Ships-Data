@@ -18,10 +18,10 @@ def main():
     load_dotenv()
 
     # Fetch the database URL from the .env file
-    POSTGRESQL_URL = os.getenv("POSTGRESQL_KEY")
+    PRODUCTION_URL = os.getenv("PRODUCTION_KEY")
 
     # Parse the URL to extract connection parameters
-    url = urlparse(POSTGRESQL_URL)
+    url = urlparse(PRODUCTION_URL)
 
     conn_params = {
         'dbname': url.path[1:],    # Extracts the database name after '/'

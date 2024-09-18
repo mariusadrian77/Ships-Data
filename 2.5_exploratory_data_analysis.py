@@ -12,10 +12,10 @@ def fetch_data_from_db():
     load_dotenv()
 
     # Fetch the database URL from the .env file
-    POSTGRESQL_URL = os.getenv("POSTGRESQL_KEY")
+    STAGING_URL = os.getenv("STAGING_KEY")
 
     # Parse the URL to extract connection parameters
-    url = urlparse(POSTGRESQL_URL)
+    url = urlparse(STAGING_URL)
 
     conn_params = {
         'dbname': url.path[1:],    # Extracts the database name after '/'

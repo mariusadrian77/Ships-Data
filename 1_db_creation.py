@@ -3,15 +3,16 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
 
-def create_tables_and_indexes():
+# Helper function to handle database connections and execute queries
+def manage_database(db_url_key, create_table_sql, drop_table_sql=None):
     # Load environment variables from the .env file
     load_dotenv()
 
     # Fetch the database URL from the .env file
-    POSTGRESQL_URL = os.getenv("POSTGRESQL_KEY")
+    db_url = os.getenv(db_url_key)
 
     # Parse the URL to extract connection parameters
-    url = urlparse(POSTGRESQL_URL)
+    url = urlparse(db_url)
 
     conn_params = {
         'dbname': url.path[1:],    # Extracts the database name after '/'
@@ -23,14 +24,31 @@ def create_tables_and_indexes():
     
     # Establish a connection to the database
     conn = psycopg2.connect(**conn_params)
-
-    print("Connection established successfully!")
+    print(f"Connection to {db_url_key} established successfully!")
 
     # Create a cursor object to execute SQL queries
     cursor = conn.cursor()
 
-    # Example: Create a table for the raw data (bronze data)
-    cursor.execute("""
+    # Execute the SQL statement to create a table
+    cursor.execute(create_table_sql)
+
+    # Commit the transaction to save changes
+    conn.commit()
+    print("Table created successfully!")
+
+    # Optionally, drop the table if necessary
+    if drop_table_sql:
+        cursor.execute(drop_table_sql)
+        conn.commit()
+        print("Table dropped successfully!")
+
+    # Close the cursor and connection
+    cursor.close()
+    conn.close()
+
+# Function to create staging table
+def create_staging_table():
+    create_table_sql = """
         CREATE TABLE IF NOT EXISTS raw_messages (
             device_id VARCHAR(255),
             datetime VARCHAR(255),
@@ -39,10 +57,13 @@ def create_tables_and_indexes():
             original_message_id VARCHAR(255),
             raw_message TEXT
         );
-    """)
+    """
+    drop_table_sql = "" # "DROP TABLE IF EXISTS raw_messages;" Optional table drop logic
+    manage_database("STAGING_KEY", create_table_sql, drop_table_sql)
 
-    # Example: Create a table for the cleaned date (silver data)
-    cursor.execute("""
+# Function to create production table
+def create_production_table():
+    create_table_sql = """
         CREATE TABLE IF NOT EXISTS raw_messages_cleaned (
             device_id VARCHAR(255),
             datetime TIMESTAMP,
@@ -60,25 +81,10 @@ def create_tables_and_indexes():
             mag_var_d DECIMAL,
             mag_var_dir CHAR(1)
         );
-    """)
-
-    # Commit the transaction to save changes
-    conn.commit()
-
-    print("Tables created successfully!")
-
-    # # Uncomment the lines below to drop the tables if necessary
-    # cursor.execute("DROP TABLE IF EXISTS raw_messages;")
-    # cursor.execute("DROP TABLE IF EXISTS raw_messages_cleaned;") 
-
-    # # Commit the changes
-    # conn.commit()
-
-    # print("Tables deleted successfully!")
-
-    # Close the cursor and connection
-    cursor.close()
-    conn.close()
+    """
+    drop_table_sql = "" # "DROP TABLE IF EXISTS raw_messages_cleaned;"  Optional table drop logic
+    manage_database("PRODUCTION_KEY", create_table_sql, drop_table_sql)
 
 if __name__ == "__main__":
-    create_tables_and_indexes()
+    create_staging_table()
+    create_production_table()
