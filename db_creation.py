@@ -33,7 +33,7 @@ def create_tables_and_indexes():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS raw_messages (
             device_id VARCHAR(255),
-            datetime TIMESTAMP,
+            datetime VARCHAR(255),
             address_ip VARCHAR(255),
             address_port INT,
             original_message_id VARCHAR(255),
@@ -50,14 +50,14 @@ def create_tables_and_indexes():
             address_port INT,
             original_message_id VARCHAR(255),
             data_status CHAR(1),
-            latitude DECIMAL(10, 7),
+            latitude DECIMAL,
             latitude_direction CHAR(1),
-            longitude DECIMAL(10, 7),
+            longitude DECIMAL,
             longitude_direction CHAR(1),
-            speed_over_ground_d DECIMAL(5, 2),
-            true_course DECIMAL(5, 2),
-            ut_date DECIMAL(10, 7),
-            mag_var_d DECIMAL(10, 7),
+            speed_over_ground_d DECIMAL,
+            true_course DECIMAL,
+            ut_date DECIMAL,
+            mag_var_d DECIMAL,
             mag_var_dir CHAR(1)
         );
     """)

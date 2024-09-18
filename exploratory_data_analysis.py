@@ -1,31 +1,46 @@
-import pandas as pd
 import re
+import os
+import psycopg2
+import pandas as pd
+from urllib.parse import urlparse
+from dotenv import load_dotenv
 
 
-messages_clean = pd.read_csv("/workspaces/Xomnia-Assignment/raw_messages_clean.csv")
-raw_messages_df = pd.read_csv("/workspaces/Xomnia-Assignment/raw_messages.csv")
+# Function to connect to the database and fetch data
+def fetch_data_from_db():
 
-# print(messages_clean.head())
+    load_dotenv()
 
-# raw_messages_info = raw_messages_df.info()
-# raw_messages_head = raw_messages_df.head()
+    # Fetch the database URL from the .env file
+    POSTGRESQL_URL = os.getenv("POSTGRESQL_KEY")
 
-# raw_messages_info,raw_messages_head
+    # Parse the URL to extract connection parameters
+    url = urlparse(POSTGRESQL_URL)
 
-# Check for missing values in the dataset
-missing_values = raw_messages_df.isnull().sum()
+    conn_params = {
+        'dbname': url.path[1:],    # Extracts the database name after '/'
+        'user': url.username,       # Extracts the username
+        'password': url.password,   # Extracts the password
+        'host': url.hostname,       # Extracts the host
+        'port': url.port            # Extracts the port
+    }
 
-# Convert Unix timestamps to a readable datetime format
-raw_messages_df['datetime'] = pd.to_datetime(raw_messages_df['datetime'], unit='s')
+    # Establish a connection to the database
+    conn = psycopg2.connect(**conn_params)
+    
+    # Create a query to fetch all data from raw_messages
+    query = "SELECT * FROM raw_messages;"
+    
+    # Fetch the data into a pandas DataFrame
+    raw_messages_df = pd.read_sql(query, conn)
+    
+    # Close the connection
+    conn.close()
+    
+    return raw_messages_df
 
-# Explore the distribution of device IDs
-device_id_counts = raw_messages_df['device_id'].value_counts()
 
-# print(missing_values, raw_messages_df['datetime_converted'].head(), device_id_counts.head())
-
-
-
-# Updated cleaning function with more robust error handling
+# Cleaning function with more robust error handling
 def robust_clean_raw_message(message):
     # Remove any characters that are not part of a basic valid set (alphanumeric, commas, dots, and basic direction letters)
     clean_message = re.sub(r'[^A-Za-z0-9.,NSWE]', '', message)
@@ -48,7 +63,6 @@ def robust_clean_raw_message(message):
             mag_var_d = float(parts[8])
             mag_var_dir = parts[9]
 
-            
             # Reconstruct a clean message with the necessary fields
             return {
                 'data_status': data_status,
@@ -67,6 +81,26 @@ def robust_clean_raw_message(message):
             return None
     else:
         return None
+    
+
+# Fetch the data and store it in a DataFrame
+raw_messages_df = fetch_data_from_db()
+
+# Check for overall data information
+raw_messages_info = raw_messages_df.info()
+raw_messages_head = raw_messages_df.head()
+
+print(raw_messages_info, '\n', raw_messages_head)
+
+# Check for missing values in the dataset
+missing_values = raw_messages_df.isnull().sum()
+
+# Convert Unix timestamps to a readable datetime format
+raw_messages_df['datetime'] = pd.to_datetime(raw_messages_df['datetime'], unit='s')
+
+# Explore the distribution of device IDs
+device_id_counts = raw_messages_df['device_id'].value_counts()
+print(missing_values, '\n', raw_messages_df['datetime'].head(), '\n', device_id_counts.head())
 
 # Apply the robust cleaning function
 raw_messages_df['cleaned_message'] = raw_messages_df['raw_message'].apply(robust_clean_raw_message)
@@ -78,16 +112,4 @@ cleaned_sample_robust = raw_messages_df[['raw_message', 'cleaned_message']].head
 valid_messages_count_robust = raw_messages_df['cleaned_message'].notnull().sum()
 invalid_messages_count_robust = raw_messages_df['cleaned_message'].isnull().sum()
 
-#print(cleaned_sample_robust, valid_messages_count_robust, invalid_messages_count_robust)
-
-# Now, we will expand the dictionary returned by 'cleaned_fields' into separate columns
-cleaned_columns_df = pd.json_normalize(raw_messages_df['cleaned_message'])
-
-# Concatenate the cleaned columns back to the original dataframe
-raw_messages_cleaned_df = pd.concat([raw_messages_df, cleaned_columns_df], axis=1)
-
-# Remove the 'raw_message' and 'cleaned_message' columns
-raw_messages_cleaned_df = raw_messages_cleaned_df.drop(columns=['raw_message', 'cleaned_message'])
-
-# Display the first few rows of the cleaned dataframe
-print(raw_messages_cleaned_df.head())
+print(cleaned_sample_robust, valid_messages_count_robust, invalid_messages_count_robust)
