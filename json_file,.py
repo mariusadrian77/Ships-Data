@@ -68,20 +68,20 @@ def main():
         weather_df['datetime'] = weather_df['datetime'].dt.round('min')
         raw_messages_cleaned_df['datetime'] = raw_messages_cleaned_df['datetime'].dt.round('min')
 
+        raw_messages_cleaned_df = raw_messages_cleaned_df.rename(columns={"latitude": "lat", "longitude": "lon"})
 
-        print(weather_df.dtypes, '\n', raw_messages_cleaned_df.dtypes)
+        # print(weather_df.head(), '\n', raw_messages_cleaned_df.head())
 
         # Merge raw_messages_cleaned_df with weather_df on 'datetime', 'latitude', and 'longitude'
         combined_df = pd.merge(
             raw_messages_cleaned_df, 
             weather_df, 
             how='left', 
-            left_on=['datetime', 'latitude', 'longitude'], 
-            right_on=['datetime', 'lat', 'lon']
+            on=['datetime', 'lat', 'lon'], 
         )
 
         # Display or save the combined DataFrame
-        print(combined_df.head())  # Display the first few rows of the combined DataFrame
+        print(combined_df[1:1]) # Display the first few rows of the combined DataFrame
 
     finally:
         None
