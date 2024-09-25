@@ -24,7 +24,7 @@ def create_cursor_and_insert_data(connection, csv_file_path, table_name):
     # Close the cursor
     cursor.close()
 
-# Main entry point of the script
+
 def main():
 
     load_dotenv()
@@ -56,7 +56,6 @@ def main():
         conn.close()
 
 
-# Entry point of the script
 if __name__ == "__main__":
     main()
 

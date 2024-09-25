@@ -88,12 +88,12 @@ def main():
         raw_messages_df = fetch_data_from_db(query="SELECT * FROM raw_messages;", environment="STAGING")
         raw_messages_clean_df = filter_raw_messages_clean_df(raw_messages_df)
 
-        # Save the combined DataFrame to a temporary CSV file
-        csv_file_path = '/tmp/raw_messages_cleaned.csv'
-        save_df_to_csv(raw_messages_clean_df, csv_file_path)
+        # # Save the combined DataFrame to a temporary CSV file
+        # csv_file_path = '/tmp/raw_messages_cleaned.csv'
+        # save_df_to_csv(raw_messages_clean_df, csv_file_path)
 
-        # Insert the combined data into the raw_messages_cleaned table
-        create_cursor_and_insert_data(conn, csv_file_path, 'raw_messages_cleaned')
+        # # Insert the combined data into the raw_messages_cleaned table
+        # create_cursor_and_insert_data(conn, csv_file_path, 'raw_messages_cleaned')
 
         # Load weather data from the JSON file
         weather_json_path = '/workspaces/Xomnia-Assignment/data/weather_data.json'  # Replace with actual path to your JSON file
@@ -101,13 +101,14 @@ def main():
         weather_df = filter_weather_data(weather_df)
 
         # Combine the two dataframes
-        combined_df = pd.merge(
-        raw_messages_clean_df, 
-        weather_df, 
-        how='left', 
-        left_on=['datetime', 'lat', 'lon'], 
-        right_on=['datetime', 'lat', 'lon']
-        )
+        combined_df = pd.merge(raw_messages_clean_df, weather_df, how='left', on=['datetime', 'lat', 'lon'])
+
+
+        ## TODO: FIX THE DUPLICATE VALUES THAT RESULTS IN AN ERRONOUS JOIN. MIGHT BE MORE OF A FEATURE THAN A BUG.
+        print(len(combined_df["device_id"]))
+        print(len(weather_df["lat"]))
+        print(len(raw_messages_clean_df["device_id"]))
+
         
         # Save the combined DataFrame to a temporary CSV file
         csv_file_path = '/tmp/raw_messages_cleaned_weather.csv'
