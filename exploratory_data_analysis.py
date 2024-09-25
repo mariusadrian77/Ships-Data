@@ -7,15 +7,17 @@ from dotenv import load_dotenv
 
 
 # Function to connect to the database and fetch data
-def fetch_data_from_db():
+def fetch_data_from_db(query, environment):
 
     load_dotenv()
-
-    # Fetch the database URL from the .env file
-    STAGING_URL = os.getenv("STAGING_KEY")
+    if environment == "STAGING":
+        # Fetch the database URL from the .env file
+        URL = os.getenv("STAGING_KEY")
+    else:
+        URL = os.getenv("PRODUCTION_KEY")
 
     # Parse the URL to extract connection parameters
-    url = urlparse(STAGING_URL)
+    url = urlparse(URL)
 
     conn_params = {
         'dbname': url.path[1:],    # Extracts the database name after '/'
@@ -27,9 +29,6 @@ def fetch_data_from_db():
 
     # Establish a connection to the database
     conn = psycopg2.connect(**conn_params)
-    
-    # Create a query to fetch all data from raw_messages
-    query = "SELECT * FROM raw_messages;"
     
     # Fetch the data into a pandas DataFrame
     raw_messages_df = pd.read_sql(query, conn)
@@ -84,7 +83,7 @@ def robust_clean_raw_message(message):
     
 
 # Fetch the data and store it in a DataFrame
-raw_messages_df = fetch_data_from_db()
+raw_messages_df = fetch_data_from_db(query="SELECT * FROM raw_messages;", environment="STAGING")
 
 # Check for overall data information
 raw_messages_info = raw_messages_df.info()

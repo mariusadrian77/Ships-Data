@@ -53,10 +53,8 @@ def filter_raw_messages_clean_df(raw_messages_df):
 
     # Filter raw_messages_clean_df
     raw_messages_clean_df = raw_messages_clean_df.rename(columns={"latitude": "lat", "longitude": "lon"})
-    raw_messages_clean_df = raw_messages_clean_df[raw_messages_clean_df['device_id'] == "st-1a2090"]
     raw_messages_clean_df['datetime'] = pd.to_datetime(raw_messages_clean_df['datetime'], errors='coerce')
     raw_messages_clean_df['datetime'] = raw_messages_clean_df['datetime'].dt.round('H')
-    raw_messages_clean_df = raw_messages_clean_df[raw_messages_clean_df['datetime'].dt.date == pd.to_datetime("2019-02-13").date()]
     raw_messages_clean_df['lat'] = raw_messages_clean_df['lat'].astype(float).round(2)
     raw_messages_clean_df['lon'] = raw_messages_clean_df['lon'].astype(float).round(2)
 
@@ -87,7 +85,7 @@ def main():
 
     try:
         # Fetch the data from raw_messages table
-        raw_messages_df = fetch_data_from_db()
+        raw_messages_df = fetch_data_from_db(query="SELECT * FROM raw_messages;", environment="STAGING")
         raw_messages_clean_df = filter_raw_messages_clean_df(raw_messages_df)
 
         # Save the combined DataFrame to a temporary CSV file
