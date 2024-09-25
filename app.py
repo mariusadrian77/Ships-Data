@@ -62,7 +62,7 @@ def wind_speed():
     return jsonify(wind_speed_stats_dict)
 
 # Endpoint 4: Weather conditions for ship "st-1a2090" on 2019-02-13
-@app.route('/metrics/weather_conditions_graph', methods=['GET'])
+@app.route('/metrics/weather_conditions', methods=['GET'])
 def weather_conditions_graph():
     # Filter for ship "st-1a2090" and date 2019-02-13
     requested_date = pd.to_datetime('2019-02-13').date()
