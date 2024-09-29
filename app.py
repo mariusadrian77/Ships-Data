@@ -63,7 +63,7 @@ def wind_speed():
 
 # Endpoint 4: Weather conditions for ship "st-1a2090" on 2019-02-13
 @app.route('/metrics/weather_conditions', methods=['GET'])
-def weather_conditions_graph():
+def weather_conditions():
     # Filter for ship "st-1a2090" and date 2019-02-13
     requested_date = pd.to_datetime('2019-02-13').date()
     filtered_df = raw_messages_cleaned_weather_df[
@@ -71,39 +71,12 @@ def weather_conditions_graph():
         (raw_messages_cleaned_weather_df['datetime'].dt.date == requested_date)
     ]
 
-    # Select relevant weather-related columns
-    weather_data = filtered_df[['temp', 'wind_spd', 'rh', 'datetime']].drop_duplicates()
+    # Select weather-related columns
+    weather_info = filtered_df[[
+        'temp', 'wind_spd', 'rh', 'weather_description', 'city_name', 'timezone'
+    ]].drop_duplicates().to_dict(orient='records')
 
-    # Plot temperature, wind speed, and humidity
-    fig, axs = plt.subplots(3, 1, figsize=(8, 12))
-
-    # Plot temperature
-    axs[0].plot(weather_data['datetime'], weather_data['temp'], color='red')
-    axs[0].set_title('Temperature over Time')
-    axs[0].set_xlabel('Datetime')
-    axs[0].set_ylabel('Temperature (°C)')
-
-    # Plot wind speed
-    axs[1].plot(weather_data['datetime'], weather_data['wind_spd'], color='blue')
-    axs[1].set_title('Wind Speed over Time')
-    axs[1].set_xlabel('Datetime')
-    axs[1].set_ylabel('Wind Speed (m/s)')
-
-    # Plot relative humidity
-    axs[2].plot(weather_data['datetime'], weather_data['rh'], color='green')
-    axs[2].set_title('Relative Humidity over Time')
-    axs[2].set_xlabel('Datetime')
-    axs[2].set_ylabel('Relative Humidity (%)')
-
-    plt.tight_layout()
-
-    # Save the plot to a BytesIO object and return it as an image
-    img = BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    plt.close()
-
-    return send_file(img, mimetype='image/png')
+    return jsonify(weather_info)
 
 
 if __name__ == '__main__':

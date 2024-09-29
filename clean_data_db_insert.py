@@ -29,16 +29,16 @@ def filter_weather_data(weather_df):
     weather_df['datetime'] = pd.to_datetime(weather_df['datetime'], errors='coerce')
 
     # Filter weather_df
-    weather_df['datetime'] = weather_df['datetime'].dt.round('H')
     weather_df['lat'] = weather_df['lat'].astype(float).round(2)
     weather_df['lon'] = weather_df['lon'].astype(float).round(2)
+    weather_df = weather_df.sort_values('datetime')
 
     return weather_df
 
 def filter_raw_messages_clean_df(raw_messages_df):
     # Convert Unix timestamps to a readable datetime format
     raw_messages_df['datetime'] = pd.to_datetime(raw_messages_df['datetime'], unit='s')
-    
+
     # Apply the robust cleaning function
     raw_messages_df['cleaned_message'] = raw_messages_df['raw_message'].apply(robust_clean_raw_message)
 
@@ -54,9 +54,9 @@ def filter_raw_messages_clean_df(raw_messages_df):
     # Filter raw_messages_clean_df
     raw_messages_clean_df = raw_messages_clean_df.rename(columns={"latitude": "lat", "longitude": "lon"})
     raw_messages_clean_df['datetime'] = pd.to_datetime(raw_messages_clean_df['datetime'], errors='coerce')
-    raw_messages_clean_df['datetime'] = raw_messages_clean_df['datetime'].dt.round('H')
     raw_messages_clean_df['lat'] = raw_messages_clean_df['lat'].astype(float).round(2)
     raw_messages_clean_df['lon'] = raw_messages_clean_df['lon'].astype(float).round(2)
+    raw_messages_clean_df = raw_messages_clean_df.sort_values('datetime')
 
     return raw_messages_clean_df
 
@@ -88,12 +88,12 @@ def main():
         raw_messages_df = fetch_data_from_db(query="SELECT * FROM raw_messages;", environment="STAGING")
         raw_messages_clean_df = filter_raw_messages_clean_df(raw_messages_df)
 
-        # # Save the combined DataFrame to a temporary CSV file
-        # csv_file_path = '/tmp/raw_messages_cleaned.csv'
-        # save_df_to_csv(raw_messages_clean_df, csv_file_path)
+        # Save the combined DataFrame to a temporary CSV file
+        csv_file_path = '/tmp/raw_messages_cleaned.csv'
+        save_df_to_csv(raw_messages_clean_df, csv_file_path)
 
-        # # Insert the combined data into the raw_messages_cleaned table
-        # create_cursor_and_insert_data(conn, csv_file_path, 'raw_messages_cleaned')
+        # Insert the combined data into the raw_messages_cleaned table
+        create_cursor_and_insert_data(conn, csv_file_path, 'raw_messages_cleaned')
 
         # Load weather data from the JSON file
         weather_json_path = '/workspaces/Xomnia-Assignment/data/weather_data.json'  # Replace with actual path to your JSON file
@@ -101,13 +101,20 @@ def main():
         weather_df = filter_weather_data(weather_df)
 
         # Combine the two dataframes
-        combined_df = pd.merge(raw_messages_clean_df, weather_df, how='left', on=['datetime', 'lat', 'lon'])
+        combined_df = pd.merge_asof(
+            raw_messages_clean_df, 
+            weather_df, 
+            on='datetime', 
+            by=['lat', 'lon'],
+            direction='nearest'
+        )
 
 
         ## TODO: FIX THE DUPLICATE VALUES THAT RESULTS IN AN ERRONOUS JOIN. MIGHT BE MORE OF A FEATURE THAN A BUG.
         print(len(combined_df["device_id"]))
         print(len(weather_df["lat"]))
         print(len(raw_messages_clean_df["device_id"]))
+        print(combined_df)
 
         
         # Save the combined DataFrame to a temporary CSV file
