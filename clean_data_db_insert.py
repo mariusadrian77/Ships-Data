@@ -29,8 +29,8 @@ def filter_weather_data(weather_df):
     weather_df['datetime'] = pd.to_datetime(weather_df['datetime'], errors='coerce')
 
     # Filter weather_df
-    weather_df['lat'] = weather_df['lat'].astype(float).round(2)
-    weather_df['lon'] = weather_df['lon'].astype(float).round(2)
+    weather_df['lat'] = weather_df['lat'].astype(int)
+    weather_df['lon'] = weather_df['lon'].astype(int)
     weather_df = weather_df.sort_values('datetime')
 
     return weather_df
@@ -54,8 +54,8 @@ def filter_raw_messages_clean_df(raw_messages_df):
     # Filter raw_messages_clean_df
     raw_messages_clean_df = raw_messages_clean_df.rename(columns={"latitude": "lat", "longitude": "lon"})
     raw_messages_clean_df['datetime'] = pd.to_datetime(raw_messages_clean_df['datetime'], errors='coerce')
-    raw_messages_clean_df['lat'] = raw_messages_clean_df['lat'].astype(float).round(2)
-    raw_messages_clean_df['lon'] = raw_messages_clean_df['lon'].astype(float).round(2)
+    raw_messages_clean_df['lat'] = raw_messages_clean_df['lat'].astype(int)
+    raw_messages_clean_df['lon'] = raw_messages_clean_df['lon'].astype(int)
     raw_messages_clean_df = raw_messages_clean_df.sort_values('datetime')
 
     return raw_messages_clean_df
