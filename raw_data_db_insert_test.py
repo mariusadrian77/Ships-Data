@@ -14,7 +14,7 @@ class ExploratoryDataAnalysisTestCase(unittest.TestCase):
         mock_conn.cursor.return_value = mock_cursor
         
         # Mock query result and description for pandas to process
-        mock_cursor.fetchall.return_value = [(1, 'st-1a2090', 123456789, 'ip', 1234, 'raw_message')]
+        mock_cursor.fetchall.return_value = [('st-1a2090', 123456789, 'ip', 1234, 'raw_message')]
         mock_cursor.description = [
             ('device_id',), ('datetime',), ('address_ip',), ('address_port',), ('raw_message',)
         ]

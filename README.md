@@ -33,10 +33,9 @@ Run the `db_creation.py` Python script to create the database schema and table. 
 ### 4. Run the `app.py` Python Script
 - This script will connect to the PostgreSQL database, where the datasets were inserted, specifically to the `PRODUCTION` environment and fetch the combined dataset for further analysis. It will calculate the following metrics:
   1. The number of ships that we have available data for.
-  2. The median session duration someone had before the first session in which they made a purchase.
-  3. The average speed for all available ships for each hour of the date 2019-02-13.
-  4. The maximum and minimum wind speed for every available day for ship ”st-1a2090” only.
-  5. The full weather conditions across route of the ship ”st-1a2090” for date 2019-02-13 (e.g. general description, temperature, wind
+  2. The average speed for all available ships for each hour of the date 2019-02-13.
+  3. The maximum and minimum wind speed for every available day for ship ”st-1a2090” only.
+  4. The full weather conditions across route of the ship ”st-1a2090” for date 2019-02-13 (e.g. general description, temperature, wind
 speed)
   
 - The web application will be deployed on port `5000` and can be accessed via the web browser at:

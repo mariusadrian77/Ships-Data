@@ -32,34 +32,37 @@ def total_ships():
 # Endpoint 2: Average speed for the ship "st-1a2090" for a specific hour on 2019-02-13
 @app.route('/metrics/avg_speed', methods=['GET'])
 def avg_speed():
-    # Fetch date and hour from request (or set default to 2019-02-13 14:00:00)
-    requested_datetime = request.args.get('datetime', '2019-02-13 14:00:00')
-    requested_datetime = pd.to_datetime(requested_datetime)
-
-    # Filter for the specific ship and hour
+    # Filter for the specific ship and date 2019-02-13
     filtered_df = raw_messages_cleaned_weather_df[
         (raw_messages_cleaned_weather_df['device_id'] == 'st-1a2090') &
-        (raw_messages_cleaned_weather_df['datetime'] == requested_datetime)
+        (raw_messages_cleaned_weather_df['datetime'].dt.date == pd.to_datetime('2019-02-13').date())
     ]
     
-    # Calculate the average speed
-    avg_speed_value = filtered_df['speed_over_ground_d'].mean()
+    # Group by each hour and calculate the average speed for each hour
+    hourly_avg_speed = filtered_df.groupby(filtered_df['datetime'].dt.hour)['speed_over_ground_d'].mean().reset_index()
+
+    # Convert the result to a dictionary format
+    hourly_avg_speed_dict = hourly_avg_speed.to_dict(orient='records')
     
-    return jsonify({"avg_speed": avg_speed_value})
+    return jsonify(hourly_avg_speed_dict)
 
 # Endpoint 3: Maximum and minimum wind speeds for each day for ship "st-1a2090"
 @app.route('/metrics/wind_speed', methods=['GET'])
 def wind_speed():
-    # Filter for ship "st-1a2090"
-    filtered_df = raw_messages_cleaned_weather_df[raw_messages_cleaned_weather_df['device_id'] == 'st-1a2090']
+    # Filter for ship "st-1a2090" and non-null wind speed values
+    filtered_df = raw_messages_cleaned_weather_df[
+        (raw_messages_cleaned_weather_df['device_id'] == 'st-1a2090') & 
+        (~raw_messages_cleaned_weather_df['wind_spd'].isnull())
+    ]
     
-    # Group by date and calculate max and min wind speeds
-    filtered_df['date'] = filtered_df['datetime'].dt.date
-    wind_speed_stats = filtered_df.groupby('date')['wind_spd'].agg(['max', 'min']).reset_index()
-    
+    # Group by the date and calculate max and min wind speeds for each day
+    wind_speed_stats = filtered_df.groupby(filtered_df['datetime'].dt.date)['wind_spd'].agg(['max', 'min']).reset_index()
+
+    # Convert the result to a dictionary format
     wind_speed_stats_dict = wind_speed_stats.to_dict(orient='records')
     
     return jsonify(wind_speed_stats_dict)
+
 
 # Endpoint 4: Weather conditions for ship "st-1a2090" on 2019-02-13
 @app.route('/metrics/weather_conditions', methods=['GET'])
@@ -68,15 +71,20 @@ def weather_conditions():
     requested_date = pd.to_datetime('2019-02-13').date()
     filtered_df = raw_messages_cleaned_weather_df[
         (raw_messages_cleaned_weather_df['device_id'] == 'st-1a2090') &
-        (raw_messages_cleaned_weather_df['datetime'].dt.date == requested_date)
+        (raw_messages_cleaned_weather_df['datetime'].dt.date == requested_date) &
+        (~raw_messages_cleaned_weather_df['datetime'].isnull())
     ]
 
-    # Select weather-related columns
+     # Select relevant weather-related columns
     weather_info = filtered_df[[
-        'temp', 'wind_spd', 'rh', 'weather_description', 'city_name', 'timezone'
-    ]].drop_duplicates().to_dict(orient='records')
+        'datetime', 'temp', 'wind_spd', 'rh', 'weather_description', 'city_name', 'timezone'
+    ]].drop_duplicates()
 
-    return jsonify(weather_info)
+    # Convert the DataFrame to a string format (text table)
+    weather_table = weather_info.to_string(index=False)
+
+    # Return the text-based table as plain text
+    return f"<pre>{weather_table}</pre>", 200, {'Content-Type': 'text/plain'}
 
 
 if __name__ == '__main__':

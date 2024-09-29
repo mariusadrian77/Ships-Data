@@ -109,14 +109,6 @@ def main():
             direction='nearest'
         )
 
-
-        ## TODO: FIX THE DUPLICATE VALUES THAT RESULTS IN AN ERRONOUS JOIN. MIGHT BE MORE OF A FEATURE THAN A BUG.
-        print(len(combined_df["device_id"]))
-        print(len(weather_df["lat"]))
-        print(len(raw_messages_clean_df["device_id"]))
-        print(combined_df)
-
-        
         # Save the combined DataFrame to a temporary CSV file
         csv_file_path = '/tmp/raw_messages_cleaned_weather.csv'
         save_df_to_csv(combined_df, csv_file_path)
