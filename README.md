@@ -24,26 +24,34 @@ Run the `db_creation.py` Python script to create the database schema and table. 
   ```ini
   DATABASE_KEY = '{connection_url}'
 
-### 3. Run the `db_insert.py` Python Script
-- This script will fetch and clean the dataset from the online JSON file.
-- It will then sessionize the data.
-- Lastly, it will copy the data to the database.
+### 3. Run the `raw_data_db_insert.py` and `clean_data_db_insert.py` Python Scripts
+#### 
+- The `raw_data_db_insert.py` script will insert the `raw_messages.csv` file into the `STAGING` environment of the database. This will act as the "bronze" layer data.
+- The `clean_data_db_insert.py` script will fetch the previously uploaded `raw_messages.csv` file from the `STAGING` environment of the database. Then it will clean the dataset and bring it to the same structure as the given `raw_messages_clean.csv` file. Then it will load the `weather_data.json` file, clean it and combine it with the `raw_messages_clean` dataset based on time and location.
+- Lastly, it will copy the data to the `PRODUCTION` environment of the database. The `raw_messages_clean` dataset will represent the "silver" data layer, while the `combined` dataset will represent the "gold" layer.
 
 ### 4. Run the `app.py` Python Script
-- This script will connect to the PostgreSQL database, where the curated dataset was inserted, and fetch it for further analysis. It will calculate two metrics:
-  1. The median number of sessions someone had before they made a purchase.
+- This script will connect to the PostgreSQL database, where the datasets were inserted, specifically to the `PRODUCTION` environment and fetch the combined dataset for further analysis. It will calculate the following metrics:
+  1. The number of ships that we have available data for.
   2. The median session duration someone had before the first session in which they made a purchase.
+  3. The average speed for all available ships for each hour of the date 2019-02-13.
+  4. The maximum and minimum wind speed for every available day for ship ”st-1a2090” only.
+  5. The full weather conditions across route of the ship ”st-1a2090” for date 2019-02-13 (e.g. general description, temperature, wind
+speed)
   
 - The web application will be deployed on port `5000` and can be accessed via the web browser at:
 [Web API](http://127.0.0.1:5000/)
 
 
 - The previously calculated metrics can be viewed at:
-[Metrics](http://127.0.0.1:5000/metrics/orders)
+[Total ships](http://127.0.0.1:5000/metrics/total_ships), 
+[Average speed](http://127.0.0.1:5000/metrics/avg_speed), 
+[Wind speed](http://127.0.0.1:5000/metrics/wind_speed), 
+[Weather conditions](http://127.0.0.1:5000/metrics/weather_conditions).
 
 
 ### Troubleshooting
-If any problems arise during the database creation step, you can modify line 59 of `db_creation.py` to delete the table and retry the steps.
+If any problems arise during the database creation step, you can modify lines 61, 86 and 140 of `db_creation.py` to delete the table and retry the steps.
 
 To do this, uncomment the "DROP TABLE" statement and add it between the quotation marks, for example:
 
