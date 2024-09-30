@@ -1,12 +1,10 @@
 import os
 import psycopg2
 import pandas as pd
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 from exploratory_data_analysis import fetch_data_from_db
-import matplotlib.pyplot as plt
-from io import BytesIO
 
 app = Flask(__name__)
 
@@ -29,7 +27,7 @@ def total_ships():
     total_ships_count = raw_messages_cleaned_weather_df['device_id'].nunique()
     return jsonify({"total_ships": total_ships_count})
 
-# Endpoint 2: Average speed for the ship "st-1a2090" for a specific hour on 2019-02-13
+# Endpoint 2: Average speed for the ship "st-1a2090" for all hours on 2019-02-13
 @app.route('/metrics/avg_speed', methods=['GET'])
 def avg_speed():
     # Filter for the specific ship and date 2019-02-13
@@ -85,7 +83,6 @@ def weather_conditions():
 
     # Return the text-based table as plain text
     return f"<pre>{weather_table}</pre>", 200, {'Content-Type': 'text/plain'}
-
 
 if __name__ == '__main__':
 
