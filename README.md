@@ -1,4 +1,4 @@
-# Xomnia Assignment Instructions
+# DE Assignment Instructions
 
 This readme file contains instructions on how to use the designed solution out-of-the-box.
 
